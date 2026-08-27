@@ -4,9 +4,16 @@ import { javascript } from "@codemirror/lang-javascript";
 import { dracula } from "@uiw/codemirror-themes";
 import { useEffect, useState } from "react";
 
+interface Question {
+  problem: string;
+  example: string;
+  constraints: string;
+  note: string;
+}
+
 const Canvas = () => {
   const [aiActive, setAiActive] = useState(false);
-  const [question, setQuestion] = useState(null);
+  const [question, setQuestion] = useState<Question | null>(null);
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [solved, setSolved] = useState(false);
@@ -29,7 +36,7 @@ const Canvas = () => {
     };
   }, []);
 
-  const handleDifficulty = (level) => {
+  const handleDifficulty = (level: string) => {
     setDifficulty(level);
     if (warning) setWarning("");
   };
@@ -44,6 +51,13 @@ const Canvas = () => {
       return;
     }
 
+    if (!window.puter?.ai?.chat) {
+      setWarning(
+        "AI service is not available yet. Please try again in a moment.",
+      );
+      return;
+    }
+
     setWarning("");
     setLoading(true);
     setFeedback("");
@@ -52,14 +66,49 @@ const Canvas = () => {
     setQuestion(null);
 
     try {
-        const res = await window.puter?.ai?.chat(``)
+      const res = await window.puter.ai.chat(
+        `
+      Generate a random ${difficulty} level coding interview question like on LeetCode.
+      Return ONLY valid JSON with this format:
+      {
+        "problem": "string",
+        "example": "string",
+        "constraints": "string",
+        "note": "string or empty if none"
+      }
+      `,
+      );
+
+      const reply = typeof res === "string" ? res : res.message?.content || "";
+      const parsed = JSON.parse(reply);
+      setQuestion(parsed);
     } catch (err) {
-      setFeedback(`Error: ${err instanceof Error ? err.message : String(err)}`)
-      setLoading(false)
+      setFeedback(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const checkSolution = async () => {};
+  const checkSolution = async () => {
+    if (!code.trim()) return;
+
+    setLoading(true);
+    try {
+      const res = await window.puter?.ai?.chat?.(
+        `The question is: ${question?.problem}. Here is the candidates solution: \n ${code}. 
+        1. If correct, say "Correct, well done".
+        2. If wrong, give hints but don't reveal the answer"`,
+      );
+
+      const reply = typeof res === "string" ? res : res.message?.content || "";
+      setFeedback(reply);
+      if (reply.includes("Correct, well done")) setSolved(true);
+    } catch (err) {
+      setFeedback(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return <div></div>;
 };
