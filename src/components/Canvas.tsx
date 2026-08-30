@@ -1,7 +1,7 @@
 import { Code } from "lucide-react";
-import CodeMirror from "@uiw/react-codemirror";
-import { javascript } from "@codemirror/lang-javascript";
-import { dracula } from "@uiw/codemirror-themes";
+// import CodeMirror from "@uiw/react-codemirror";
+// import { javascript } from "@codemirror/lang-javascript";
+// import { dracula } from "@uiw/codemirror-themes";
 import { useEffect, useState } from "react";
 
 interface Question {
@@ -111,9 +111,9 @@ const Canvas = () => {
   };
 
   return (
-    <div className="w-full flex items-center justify-center">
+    <div className="w-full flex-1 flex items-center justify-center">
       {!question ? (
-        <div className="w-full p-10 bg-gray-300 backdrop-blur-md rounded-lg border border-gray-500 text-center">
+        <div className="w-50vw p-10 bg-gray-300 backdrop-blur-md rounded-lg border border-gray-500 text-center">
           <Code className="mx-auto mb-6 w-24 h-24" />
           <h4 className="text-white font-semibold">Ready to Practice?</h4>
           <p className="text-slate-300 mb-8 text-lg leading-relaxed">
